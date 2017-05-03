@@ -32,9 +32,9 @@ FORMS    +=
 RESOURCES += \
     res.qrc
 
-include(../QtWebApp/logging/logging.pri)
-include(../QtWebApp/httpserver/httpserver.pri)
-include(../QtWebApp/templateengine/templateengine.pri)
+include(QtWebApp/logging/logging.pri)
+include(QtWebApp/httpserver/httpserver.pri)
+include(QtWebApp/templateengine/templateengine.pri)
 # Not used: include(../QtWebApp/qtservice/qtservice.pri)
 
 DISTFILES += \
