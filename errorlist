@@ -1,0 +1,8 @@
+500 : "invalid function call information"
+501 : "invalid function name"
+502 : "undefined error"
+-200 out of range
+-201 file not loaded
+-202 internal error file loading(path incorrect)
+-203 invalid document
+-204 invalid page
