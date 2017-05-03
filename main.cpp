@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 {
 
     //test comment
+    //joonz to amir
     QApplication a(argc, argv);
 
 
