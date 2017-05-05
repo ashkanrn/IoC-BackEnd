@@ -1,5 +1,4 @@
 #include "presenter.h"
-Presenter* Presenter::INSTANCE = 0;
 
 Presenter::Presenter(QObject *parent) : QObject(parent)
 {
@@ -60,9 +59,15 @@ int Presenter::loadPdf(QString filename)
         return -203;
     }
 
+    mainDocument->setRenderHint(Poppler::Document::TextAntialiasing);
     mainDocument->setRenderHint(Poppler::Document::Antialiasing);
 
     pr = new PageRenderer();
+
+    auto rec = QApplication::desktop()->screenGeometry();
+
+    pr->setHeight(rec.height()*0.9f);
+    pr->setWidth(rec.width()*0.9f);
 
     auto count = pageCount();
     for(int i=0;i<count;i++)
@@ -75,8 +80,8 @@ int Presenter::loadPdf(QString filename)
 
 void Presenter::endPresent()
 {
-    delete mainDocument;
     delete this->pr;
+    delete mainDocument;
 }
 
 int Presenter::setCurrentPage(int pageNumber)
@@ -85,15 +90,9 @@ int Presenter::setCurrentPage(int pageNumber)
         return -201;
     if(mainDocument->numPages()<pageNumber||pageNumber<0)
         return -200;
-//    Poppler::Page* pdfPage = mainDocument->page(pageNumber-1);  // Document starts at page 0
-//    if (!pdfPage) {
-//        return -204;
-//    }
 
-    // Generate a QImage of the rendered page
 
     emit setPage(pr->getImage(pageNumber-1));
-//    delete pdfPage;
 
     return 0;
 }

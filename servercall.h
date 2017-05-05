@@ -7,36 +7,19 @@
 #include <QJsonArray>
 #include "presenter.h"
 #include "mainwindow.h"
+#include <QBuffer>
 
-class ServerCall/*: public QObject*/
+using namespace stefanfrings;
+
+class ServerCall: public QObject
 {
-//    Q_OBJECT
-    static ServerCall* INSTANCE;
-    ServerCall();
+    Q_OBJECT
+    Presenter* presenter;
+
 public:
-    static ServerCall* getInstance()
-    {
-        if (INSTANCE==0)
-        {
-            INSTANCE = new ServerCall();
-        }
-        return INSTANCE;
-    }
+    ServerCall(QObject* parent=0);
 
-    void service(HttpRequest& request, HttpResponse& response)
-    {
-        auto jsonDoc = QJsonDocument::fromJson(request.getParameter("callInformation"));
-        QJsonObject json = jsonDoc.object();
-        QJsonObject result;
 
-        if (json.isEmpty())
-        {
-            setError(result,500,"invalid function call information");
-            writeJson(result,response);
-            return;
-        }
-        functionHandler(json,result,response);
-    }
     void functionHandler(QJsonObject& json,QJsonObject& result,HttpResponse& response)
     {
         QString function = json["function"].toString().toLower();
@@ -56,6 +39,10 @@ public:
         else if (function=="setpos" && !arg.isEmpty())
         {
             result["return"] = SetPos(arg[0].toInt(),arg[1].toInt(),status,error);
+        }
+        else if (function=="loadimage" && !arg.isEmpty())
+        {
+            result["return"] = LoadImage(arg[0].toInt(),status,error);
         }
         else
         {
@@ -84,7 +71,6 @@ public: //Server Functions
     {
         QJsonArray result;
 
-        auto presenter = Presenter::getInstance();
         status = presenter->setCurrentPage(slide);
         error  = presenterError(status);
 
@@ -93,8 +79,6 @@ public: //Server Functions
     QJsonArray OpenFile(QString filename, int& status, QString& error)
     {
         QJsonArray result;
-
-        auto presenter = Presenter::getInstance();
 
         status = presenter->loadPdf(QDir::currentPath() + "/" + filename);
         error = presenterError(status);
@@ -107,11 +91,38 @@ public: //Server Functions
     QJsonArray SetPos(int x,int y, int& status, QString& error)
     {
         QJsonArray result;
-        MainWindow::getInstance()->changeImagePos(x,y);
+
+        emit changePos(x,y);
+
         status = 0;
         error = QString();
         return result;
     }
+    QJsonArray LoadImage(int num, int& status, QString& error)
+    {
+        //TODO:
+        //Check empty image
+        QJsonArray result;
+
+        auto image = presenter->getImage(num);
+
+        QByteArray data;
+        QBuffer buff(&data);
+        buff.open(QBuffer::WriteOnly);
+
+        image.save(&buff, "jpg");
+
+        result.append(QString(data.toBase64()));
+
+        status = 0;
+        error = QString();
+        return result;
+    }
+    Presenter* getPresenter()
+    {
+        return presenter;
+    }
+
 private:
     QString presenterError(int err)
     {
@@ -129,6 +140,23 @@ private:
         default:
             return QString();
         }
+    }
+signals:
+    void changePos(int x,int y);
+public slots:
+    void service(HttpRequest& request, HttpResponse& response)
+    {
+        auto jsonDoc = QJsonDocument::fromJson(request.getParameter("callInformation"));
+        QJsonObject json = jsonDoc.object();
+        QJsonObject result;
+
+        if (json.isEmpty())
+        {
+            setError(result,500,"invalid function call information");
+            writeJson(result,response);
+            return;
+        }
+        functionHandler(json,result,response);
     }
 };
 

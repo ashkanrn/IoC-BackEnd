@@ -27,8 +27,6 @@ HEADERS  += mainwindow.h \
     presenter.h \
     pagerenderer.h
 
-FORMS    +=
-
 RESOURCES += \
     res.qrc
 

@@ -5,17 +5,15 @@
 #include "staticfilecontroller.h"
 #include "requestmapper.h"
 #include "pagerenderer.h"
+
+using namespace stefanfrings;
 int main(int argc, char *argv[])
 {
-
-    //test comment
-    //joonz to amir
-    //test2
     QApplication a(argc, argv);
 
 
-    QSettings* listenerSettings=new QSettings("setting.ini", QSettings::IniFormat, &a);
-    QSettings* fileSettings=new QSettings("setting.ini", QSettings::IniFormat, &a);
+    QSettings* listenerSettings=new QSettings(":/new/prefix1/setting.ini", QSettings::IniFormat, &a);
+    QSettings* fileSettings=new QSettings(":/new/prefix1/setting.ini", QSettings::IniFormat, &a);
 
     fileSettings->beginGroup("files");
     auto staticFileController=new StaticFileController(fileSettings,&a);
@@ -24,8 +22,6 @@ int main(int argc, char *argv[])
 
     auto mapper = new RequestMapper(staticFileController,&a);
     new HttpListener(listenerSettings, mapper, &a);
-
-    MainWindow::getInstance()->show();
 
     return a.exec();
 }

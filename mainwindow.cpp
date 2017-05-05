@@ -1,39 +1,34 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include <QDebug>
-#include "presenter.h"
-
-
-MainWindow* MainWindow::INSTANCE = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
-    QLabel(parent)
+    QGraphicsView(parent)
 {
-    setStyleSheet("background-color:blue;");
+    graphic = new QGraphicsScene(this);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setScene(graphic);
+
+    pixmap = graphic->addPixmap(QPixmap(":/new/prefix1/photo_2016-11-06_12-50-18.jpg"));
 }
 
 void MainWindow::changeImagePos(int vx, int vy)
 {
-    //TODO:
-    //race condition
-    mutex.lock();
     if (vx==0&&vy==0)
     {
-        move(0,0);
+        pixmap->setPos(0,0);
     }
     else
     {
-        move(x()+vx,y()+vy);
+        pixmap->setPos(pixmap->pos().x()+vx,pixmap->pos().y()+vy);
     }
-    update();
-    mutex.unlock();
 }
 
 MainWindow::~MainWindow()
 {
 }
 
-void MainWindow::setPage(const /*Poppler::Page*/QImage& image)
+void MainWindow::setPage(QImage image)
 {
-    setPixmap(QPixmap::fromImage(image));
+    pixmap->setPixmap(QPixmap::fromImage(image));
 }

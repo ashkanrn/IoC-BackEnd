@@ -5,8 +5,19 @@
 
 RequestMapper::RequestMapper(StaticFileController *sfc, QObject* parent)
     : HttpRequestHandler(parent),staticFileController(sfc) {
-    // empty
-    qDebug()<<QDir::currentPath();
+
+    window = new MainWindow();
+    window->show();
+
+    servercall = new ServerCall(this);
+
+    connect(this,&RequestMapper::destroyed,window,&MainWindow::deleteLater);
+
+    connect(servercall,&ServerCall::changePos,window,&MainWindow::changeImagePos,Qt::QueuedConnection);
+    connect(servercall->getPresenter(),&Presenter::setPage,window,&MainWindow::setPage,Qt::QueuedConnection);
+
+    connect(this,&RequestMapper::servercallfunc,servercall,&ServerCall::service,Qt::BlockingQueuedConnection);
+    connect(this,&RequestMapper::upload,this,&RequestMapper::uploadService,Qt::BlockingQueuedConnection);
 }
 
 RequestMapper::~RequestMapper() {
@@ -14,33 +25,34 @@ RequestMapper::~RequestMapper() {
 }
 
 void RequestMapper::service(HttpRequest &request, HttpResponse &response) {
+    response.setHeader("Cache-Control","no-store"); //force all response to not store
+
     auto path = request.getPath().toLower();
     if (path=="/upload")
     {
-        uploadService(request,response);
+        emit uploadService(request,response);
         return;
     }
     if (path=="/servercall")
     {
-        ServerCall::getInstance()->service(request,response);
+        emit servercallfunc(request,response);
         return;
     }
     if (path.startsWith("/pageimage"))
     {
-        //TODO:
-        //Control page number
-        //control file loaded
-        //check image not null
+
         QString page = path.replace("/pageimage/","");
-        Presenter* presenter = Presenter::getInstance();
-        QImage image = presenter->getImage(page.toInt());
+        auto image = servercall->getPresenter()->getImage(page.toInt());
+
         QByteArray data;
-        QBuffer buffer(&data);
-        buffer.open(QIODevice::WriteOnly);
-        image.save(&buffer, "jpg");
+        QBuffer buff(&data);
+        buff.open(QBuffer::WriteOnly);
+
+        image.save(&buff, "jpg");
 
         response.setHeader("Content-Type","image/jpg");
         response.write(data,true);
+
         return;
     }
     staticFileController->service(request,response);

@@ -22,19 +22,10 @@
 class Presenter : public QObject
 {
     Q_OBJECT
-    static Presenter* INSTANCE;
 
-    explicit Presenter(QObject *parent = 0);
+
 public:
-
-    static Presenter* getInstance()
-    {
-        if (!INSTANCE){
-            INSTANCE = new Presenter();
-            connect(INSTANCE,&Presenter::setPage,MainWindow::getInstance(),&MainWindow::setPage,Qt::BlockingQueuedConnection);
-        }
-        return INSTANCE;
-    }
+    explicit Presenter(QObject *parent = 0);
 
     bool convertPPT(QString filePath,QString saveFileName);
     int loadPdf(QString path);
@@ -44,6 +35,8 @@ public:
 
     QImage getImage(int slide)
     {
+        if (!pr) return QImage();
+
         return pr->getImage(slide-1);
     }
     int pageCount();
@@ -59,7 +52,7 @@ private:
 
     int current_page;
 signals:
-    void setPage(const QImage& img);
+    void setPage(QImage img);
 };
 
 #endif // PRESENTER_H

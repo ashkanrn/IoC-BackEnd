@@ -19,7 +19,9 @@ class Renderer: public QRunnable
 public:
     Q_DISABLE_COPY(Renderer)
 
-    Renderer(Poppler::Page* page):page(page)
+    int wp,hp;
+
+    Renderer(int w,int h,Poppler::Page* page):page(page),wp(w),hp(h)
     {
         mutex.lock();
 
@@ -29,10 +31,6 @@ public:
     void run()
     {
         auto size = page->pageSize();
-        QRect rec = QApplication::desktop()->screenGeometry();
-
-        auto wp = rec.width();
-        auto hp = rec.height();
 
         auto ws = size.width();
         auto hs = size.height();
@@ -74,14 +72,16 @@ class PageRenderer: public QObject
     QThreadPool* pool;
 
     QMap<int,Renderer*> renderers;
+
+    int w,h;
 public:
-    PageRenderer(QObject *ptr = 0);
+    PageRenderer(int w=0, int h=0,QObject *ptr = 0);
 
     void addPage(int index ,Poppler::Page* p)
     {
         if (renderers.contains(index)) return;
 
-        auto run = new Renderer(p);
+        auto run = new Renderer(w,h,p);
         pool->start(run);
 
         renderers.insert(index,run);
@@ -89,6 +89,7 @@ public:
 
     QImage getImage(int index)
     {
+        if (!renderers.contains(index)) return QImage();
         return renderers[index]->getImage();
     }
 
@@ -100,6 +101,14 @@ public:
         {
             delete p;
         }
+    }
+    void setWidth(int n)
+    {
+        w=n;
+    }
+    void setHeight(int n)
+    {
+        h=n;
     }
 };
 

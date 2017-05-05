@@ -4,35 +4,26 @@
 #include <QMainWindow>
 #include <poppler/qt5/poppler-qt5.h>
 #include <QMutex>
-#include <QLabel>
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#include <QGraphicsPixmapItem>
 
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QLabel
+class MainWindow : public QGraphicsView
 {
 
     Q_OBJECT
-    QMutex mutex;
+    QGraphicsScene* graphic;
+    QGraphicsPixmapItem* pixmap;
+
+public:
 
     explicit MainWindow(QWidget *parent = 0);
-    static MainWindow* INSTANCE;
-public:
-    static MainWindow* getInstance()
-    {
-        if (INSTANCE==0)
-        {
-            INSTANCE = new MainWindow();
-        }
-        return INSTANCE;
-    }
-    void changeImagePos(int x , int y);
-
     ~MainWindow();
 
 public slots:
-    void setPage(const QImage &image);
+    void setPage(QImage image);
+
+    void changeImagePos(int x , int y);
 };
 
 #endif // MAINWINDOW_H

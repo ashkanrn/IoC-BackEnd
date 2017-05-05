@@ -3,11 +3,17 @@
 #include "httprequesthandler.h"
 #include "staticfilecontroller.h"
 #include "servercall.h"
+#include "presenter.h"
 
+using namespace stefanfrings;
 class RequestMapper : public HttpRequestHandler {
     Q_OBJECT
     StaticFileController* staticFileController;
 
+    ServerCall* servercall;
+    MainWindow* window;
+
+public slots:
     void uploadService(HttpRequest &request, HttpResponse &response)
     {
         //TODO:
@@ -26,11 +32,13 @@ class RequestMapper : public HttpRequestHandler {
         response.setStatus(200);
         response.write("{}");
     }
-
 public:
     RequestMapper(StaticFileController* sfc,QObject* parent=0);
     virtual ~RequestMapper();
     virtual void service(HttpRequest& request, HttpResponse& response);
+signals:
+    void servercallfunc(HttpRequest& request, HttpResponse& response);
+    void upload(HttpRequest &request, HttpResponse &response);
 };
 
 #endif // REQUESTMAPPER_H
